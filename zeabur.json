@@ -1,0 +1,16 @@
+{
+  "name": "blog-api",
+  "version": "1.0.0",
+  "build": {
+    "type": "maven",
+    "commands": [
+      "./mvnw clean package -DskipTests"
+    ]
+  },
+  "run": {
+    "command": "java -Dspring.profiles.active=prod -jar target/*.jar"
+  },
+  "env": {
+    "SPRING_PROFILES_ACTIVE": "prod"
+  }
+}

@@ -80,15 +80,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestPath.startsWith("/auth/") ||
                 requestPath.startsWith("/public/") ||
                 requestPath.startsWith("/api/categories/") ||
-                requestPath.startsWith("/api/posts/") ||
                 requestPath.startsWith("/api/category/") ||
-                requestPath.startsWith("/api/user/") ||
                 requestPath.startsWith("/api/users/") ||
                 requestPath.startsWith("/v3/api-docs") ||
                 requestPath.startsWith("/swagger-ui/") ||
                 requestPath.startsWith("/swagger-resources/") ||
                 requestPath.startsWith("/webjars/") ||
                 requestPath.equals("/swagger-ui.html");
+
+        // Only allow GET requests for posts to be public
+        if (requestPath.startsWith("/api/posts/")) {
+            // This will be handled by the security configuration based on HTTP method
+            return false;
+        }
+
+        // Only allow GET requests for comments to be public
+        if (requestPath.startsWith("/api/comments/")) {
+            // This will be handled by the security configuration based on HTTP method
+            return false;
+        }
+
+        // Only allow GET requests for user endpoints to be public
+        if (requestPath.startsWith("/api/user/")) {
+            // This will be handled by the security configuration based on HTTP method
+            return false;
+        }
 
         // Debug logging
         System.out.println("JWT Filter - isPublicEndpoint: " + requestPath + " = " + isPublic);

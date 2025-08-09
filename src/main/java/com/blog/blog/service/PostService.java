@@ -22,4 +22,6 @@ public interface PostService {
     List<PostDto> getPostsByUserId(Long userId);
 
     List<PostDto> searchPosts(String keyword);
+
+    boolean isPostOwner(Long postId, String userEmail);
 }

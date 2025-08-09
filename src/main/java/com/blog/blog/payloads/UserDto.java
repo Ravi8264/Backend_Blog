@@ -1,4 +1,6 @@
 package com.blog.blog.payloads;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,8 +22,11 @@ public class UserDto {
     private String email;
     @NotNull
     @Size(min = 3, max = 10, message = "min 3 char max 10")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     @NotNull
     private String about;
     private Set<RoleDto> roles=new HashSet<>();
+
+
 }

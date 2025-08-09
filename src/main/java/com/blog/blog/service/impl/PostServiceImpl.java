@@ -136,4 +136,20 @@ public class PostServiceImpl implements PostService {
                                 .map(post -> modelMapper.map(post, PostDto.class))
                                 .collect(Collectors.toList());
         }
+
+        // ✅ Check if user owns the post
+        @Override
+        public boolean isPostOwner(Long postId, String userEmail) {
+                Post post = postRepo.findById(postId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+
+                System.out.println("DEBUG - isPostOwner check:");
+                System.out.println("Post ID: " + postId);
+                System.out.println("Post owner email: " + post.getUser().getEmail());
+                System.out.println("Authenticated user email: " + userEmail);
+                boolean isOwner = post.getUser().getEmail().equals(userEmail);
+                System.out.println("Is owner: " + isOwner);
+
+                return isOwner;
+        }
 }

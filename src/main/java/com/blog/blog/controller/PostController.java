@@ -10,9 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class PostController {
 
     // 1. Create Post
     @PostMapping("/user/{userId}/category/{categoryId}/posts")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<PostDto> createPost(
             @Valid @RequestBody PostDto postDto,
             @PathVariable Long userId,
@@ -42,15 +44,25 @@ public class PostController {
 
     // 2. Update Post
     @PutMapping("/posts/{postId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @postServiceImpl.isPostOwner(#postId, authentication.name)")
     public ResponseEntity<PostDto> updatePost(
             @Valid @RequestBody PostDto postDto,
-            @PathVariable Long postId) {
+            @PathVariable Long postId,
+            Authentication authentication) {
+
+        // Debug authentication
+        System.out.println("DEBUG - Authentication details:");
+        System.out.println("User: " + authentication.getName());
+        System.out.println("Authorities: " + authentication.getAuthorities());
+        System.out.println("Principal type: " + authentication.getPrincipal().getClass().getSimpleName());
+
         PostDto updatedPost = postService.update(postDto, postId);
         return ResponseEntity.ok(updatedPost);
     }
 
     // 3. Delete Post
     @DeleteMapping("/posts/{postId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @postServiceImpl.isPostOwner(#postId, authentication.name)")
     public ResponseEntity<String> deletePost(@PathVariable Long postId) {
         postService.delete(postId);
         return ResponseEntity.ok("Post deleted successfully");
@@ -97,6 +109,7 @@ public class PostController {
 
     // post image upload
     @PostMapping("/post/image/upload/{postId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @postServiceImpl.isPostOwner(#postId, authentication.name)")
     public ResponseEntity<PostDto> uploadPostImage(
             @RequestParam("image") MultipartFile image,
             @PathVariable Long postId) throws IOException {
@@ -110,4 +123,5 @@ public class PostController {
 
         return new ResponseEntity<>(updatedPost, HttpStatus.OK);
     }
+
 }

@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,6 +24,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
@@ -31,40 +33,43 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    // 🔓 Public URLs (permitAll)
+    private static final String[] PUBLIC_URLS = {
+            "/api/v1/auth/**",
+            "/auth/**",
+            "/public/**",
+
+            // Swagger
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/webjars/**",
+
+            // Public GET endpoints
+            "/api/categories/**",
+            "/api/posts/**",
+            "/api/category/*/posts", // Fixed: single * instead of **
+            "/api/user/*/posts", // Fixed: single * instead of **
+            "/api/user/*/category/*/posts", // Fixed: single * instead of **
+            "/api/users/**",
+            "/api/user/**", // For GET only - this is fine as ** is at the end
+            "/api/comments/post/*/comments" // Allow GET requests for comments
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Allow OPTIONS requests for CORS preflight (must be first)
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Public endpoints (no authentication required)
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/public/**").permitAll()
-
-                        // Swagger/OpenAPI endpoints - allow public access
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/swagger-ui.html").permitAll()
-                        .requestMatchers("/swagger-resources/**").permitAll()
-                        .requestMatchers("/webjars/**").permitAll()
-
-                        // Public read-only endpoints (GET requests)
-                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/category/**/posts").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/user/**/posts").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
-
-                        // Allow POST requests for categories (if categories should be publicly
-                        // creatable)
-                        .requestMatchers(HttpMethod.POST, "/api/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/categories/").permitAll()
-
-                        // All other endpoints require authentication
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Pre-flight requests
+                        .requestMatchers(PUBLIC_URLS).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/categories/**").permitAll() // Moved from PUBLIC_URLS
+                        .requestMatchers(HttpMethod.POST, "/api/comments/post/*/comments").permitAll() // Fixed pattern
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/*").authenticated() // Allow authenticated
+                                                                                               // DELETE for comments
+                        .requestMatchers(HttpMethod.POST, "/api/user/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
