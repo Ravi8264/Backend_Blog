@@ -6,7 +6,7 @@ A comprehensive Spring Boot REST API for a blog application with JWT authenticat
 
 - **User Authentication**: JWT-based login/register with refresh token support
 - **Blog Management**: Create, read, update, delete posts
-- **Category Management**: Organize posts by categories  
+- **Category Management**: Organize posts by categories
 - **Comment System**: Users can comment on posts
 - **File Upload**: Image upload functionality for posts
 - **Role-based Authorization**: Admin and User roles
@@ -25,12 +25,14 @@ A comprehensive Spring Boot REST API for a blog application with JWT authenticat
 ## 📚 API Endpoints
 
 ### Authentication
+
 - `POST /api/v1/auth/login` - User login
 - `POST /api/v1/auth/register` - User registration
 - `POST /api/v1/auth/refresh` - Refresh access token
 - `POST /api/v1/auth/logout` - User logout
 
 ### Posts
+
 - `GET /api/posts` - Get all posts (paginated)
 - `GET /api/posts/{id}` - Get post by ID
 - `POST /api/user/{userId}/category/{categoryId}/posts` - Create post
@@ -39,12 +41,14 @@ A comprehensive Spring Boot REST API for a blog application with JWT authenticat
 - `GET /api/posts/search/{keyword}` - Search posts
 
 ### Categories
+
 - `GET /api/categories` - Get all categories
 - `POST /api/categories` - Create category
 - `PUT /api/categories/{id}` - Update category
 - `DELETE /api/categories/{id}` - Delete category
 
 ### Comments
+
 - `GET /api/comments/post/{postId}/comments` - Get post comments
 - `POST /api/comments/post/{postId}/comments` - Add comment
 - `DELETE /api/comments/{id}` - Delete comment
@@ -52,18 +56,22 @@ A comprehensive Spring Boot REST API for a blog application with JWT authenticat
 ## 🔧 Local Development
 
 ### Prerequisites
+
 - Java 21
 - PostgreSQL
 - Maven
 
 ### Setup
+
 1. Clone the repository
+
 ```bash
 git clone https://github.com/Ravi8264/Backend_Blog.git
 cd Backend_Blog
 ```
 
 2. Configure database in `application.properties`
+
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/Blog
 spring.datasource.username=your_username
@@ -71,6 +79,7 @@ spring.datasource.password=your_password
 ```
 
 3. Run the application
+
 ```bash
 ./mvnw spring-boot:run
 ```
@@ -78,6 +87,7 @@ spring.datasource.password=your_password
 ## 🚀 Deployment
 
 ### Zeabur Deployment
+
 This project is configured for easy deployment on Zeabur:
 
 1. Fork this repository
@@ -89,6 +99,7 @@ This project is configured for easy deployment on Zeabur:
 5. Deploy!
 
 ### Environment Variables (Production)
+
 ```
 SPRING_PROFILES_ACTIVE=prod
 DATABASE_URL=your_database_url
@@ -129,6 +140,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 👨‍💻 Developer
 
 **Ravi Kumar**
+
 - GitHub: [@Ravi8264](https://github.com/Ravi8264)
 
 ---
