@@ -1,3 +1,6 @@
+[phases.setup]
+cmds = ["chmod +x ./mvnw"]
+
 [phases.build]
 cmds = ["./mvnw clean package -DskipTests -Dmaven.javadoc.skip=true"]
 
@@ -6,3 +9,4 @@ cmd = "java -Dserver.port=$PORT -jar target/*.jar"
 
 [variables]
 MAVEN_OPTS = "-Xmx1024m"
+JAVA_TOOL_OPTIONS = "-Xmx1g"
