@@ -3,40 +3,59 @@ package com.blog.blog;
 import com.blog.blog.entities.Role;
 import com.blog.blog.payloads.AppConstant;
 import com.blog.blog.repositorie.RoleRepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.stereotype.Component;
 
 @SpringBootApplication
 public class BlogApplication implements CommandLineRunner {
-	@Autowired
-	private RoleRepo roleRepo;
 
-	public static void main(String[] args) {
-		// Fix PORT environment variable issue before starting Spring Boot
-		String portValue = System.getenv("PORT");
-		if (portValue != null && ("$PORT".equals(portValue) || portValue.contains("$PORT"))) {
-			System.out.println("WARNING: PORT environment variable contains literal '$PORT'. Setting default port 8080.");
-			System.setProperty("server.port", "8080");
-		} else if (portValue != null) {
-			// Validate that PORT is a valid integer
-			try {
-				Integer.parseInt(portValue);
-				System.setProperty("server.port", portValue);
-				System.out.println("INFO: Using PORT from environment: " + portValue);
-			} catch (NumberFormatException e) {
-				System.out.println("WARNING: Invalid PORT value '" + portValue + "'. Setting default port 8080.");
-				System.setProperty("server.port", "8080");
-			}
-		} else {
-			// No PORT set, will use application.properties default
-			System.out.println("INFO: No PORT environment variable set, using application.properties default");
-		}
-		
-		SpringApplication.run(BlogApplication.class, args);
-	}
+    private static final Logger logger = LoggerFactory.getLogger(BlogApplication.class);
+
+    @Autowired
+    private RoleRepo roleRepo;
+
+    public static void main(String[] args) {
+        // CRITICAL: Fix PORT issue before Spring Boot starts
+        fixPortIssue();
+        
+        SpringApplication.run(BlogApplication.class, args);
+    }
+
+    private static void fixPortIssue() {
+        String portEnv = System.getenv("PORT");
+        
+        System.out.println("=== PORT FIX DEBUG ===");
+        System.out.println("Original PORT env: " + portEnv);
+        
+        // Force set system property to override any problematic values
+        if (portEnv == null || "$PORT".equals(portEnv) || portEnv.contains("$PORT")) {
+            System.out.println("FIXING: PORT is null or contains $PORT literal");
+            System.setProperty("server.port", "8080");
+            
+            // Also try to clear the problematic environment
+            try {
+                System.clearProperty("PORT");
+            } catch (Exception e) {
+                System.out.println("Could not clear PORT property: " + e.getMessage());
+            }
+        } else {
+            try {
+                int port = Integer.parseInt(portEnv);
+                System.out.println("Valid PORT found: " + port);
+                System.setProperty("server.port", String.valueOf(port));
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid PORT format, using 8080");
+                System.setProperty("server.port", "8080");
+            }
+        }
+        
+        System.out.println("Final server.port: " + System.getProperty("server.port"));
+        System.out.println("=====================");
+    }
 
 	@Override
 	public void run(String... args) throws Exception {
