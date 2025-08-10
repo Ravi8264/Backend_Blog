@@ -2,13 +2,20 @@ package com.blog.blog.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.server.ConfigurableWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
-public class PortConfiguration implements WebServerFactoryCustomizer<ConfigurableWebServerFactory> {
+public class PortConfiguration implements EnvironmentPostProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(PortConfiguration.class);
 
@@ -18,53 +25,49 @@ public class PortConfiguration implements WebServerFactoryCustomizer<Configurabl
         this.environment = environment;
     }
 
-    @Override
-    public void customize(ConfigurableWebServerFactory factory) {
-        // Get PORT from environment
-        String portValue = environment.getProperty("PORT");
-
-        logger.info("PORT environment variable: {}", portValue);
-
-        // Validate and set port
-        int port = getValidPort(portValue);
-
-        logger.info("Setting server port to: {}", port);
-        factory.setPort(port);
+    public PortConfiguration() {
+        this.environment = null; // For EnvironmentPostProcessor
     }
 
-    private int getValidPort(String portValue) {
-        // Default port
-        int defaultPort = 8080;
+    @Override
+    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        String portValue = System.getenv("PORT");
 
-        // Check if PORT is null or empty
-        if (portValue == null || portValue.trim().isEmpty()) {
-            logger.warn("PORT environment variable is null or empty, using default: {}", defaultPort);
-            return defaultPort;
+        logger.info("=== Environment Post-Processing: Port Validation ===");
+        logger.info("PORT environment variable: {}", portValue);
+
+        // Check if PORT contains literal $PORT string and fix it
+        if (portValue != null && ("$PORT".equals(portValue) || portValue.contains("$PORT"))) {
+            logger.warn("DETECTED: PORT environment variable contains literal '$PORT' string");
+            logger.warn("Fixing by setting server.port to default value 8080");
+
+            // Create a property source with the corrected port value
+            Map<String, Object> correctedProperties = new HashMap<>();
+            correctedProperties.put("server.port", "8080");
+
+            MapPropertySource correctedPropertySource = new MapPropertySource("correctedPortProperties",
+                    correctedProperties);
+            environment.getPropertySources().addFirst(correctedPropertySource);
+
+            logger.info("Applied corrected server.port=8080 to override problematic PORT environment variable");
         }
 
-        // Check for literal $PORT string
-        if ("$PORT".equals(portValue) || "${PORT}".equals(portValue)) {
-            logger.error("PORT contains literal placeholder '{}', using default: {}", portValue, defaultPort);
-            return defaultPort;
-        }
+        logger.info("=======================================================");
+    }
 
-        // Try to parse as integer
-        try {
-            int port = Integer.parseInt(portValue.trim());
+    @EventListener(ApplicationStartedEvent.class)
+    public void logPortInformation() {
+        if (environment == null)
+            return;
 
-            // Validate port range
-            if (port < 1 || port > 65535) {
-                logger.error("PORT {} is out of valid range (1-65535), using default: {}", port, defaultPort);
-                return defaultPort;
-            }
+        // Log port information for debugging after startup
+        String portValue = environment.getProperty("PORT");
+        String serverPort = environment.getProperty("server.port");
 
-            logger.info("Successfully parsed PORT: {}", port);
-            return port;
-
-        } catch (NumberFormatException e) {
-            logger.error("Failed to parse PORT '{}' as integer: {}, using default: {}",
-                    portValue, e.getMessage(), defaultPort);
-            return defaultPort;
-        }
+        logger.info("=== Final Port Configuration ===");
+        logger.info("PORT environment variable: {}", portValue);
+        logger.info("server.port property: {}", serverPort);
+        logger.info("Active profiles: {}", String.join(", ", environment.getActiveProfiles()));
+        logger.info("===============================");
     }
 }

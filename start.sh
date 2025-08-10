@@ -59,17 +59,11 @@ if [[ "${!server.port@}" ]]; then
     unset server.port 2>/dev/null || true
 fi
 
-# Start the application with explicit port override
-# Clear any problematic system properties first
+# Start the application - let Spring Boot handle port configuration via application.properties
+# DO NOT set -Dserver.port as it can override environment variable resolution
 export JAVA_OPTS="-Dspring.profiles.active=$SPRING_PROFILES_ACTIVE"
 
-# Add port configuration only if PORT is valid
-if [[ "$PORT" =~ ^[0-9]+$ ]]; then
-    echo "Using validated PORT: $PORT"
-    export JAVA_OPTS="$JAVA_OPTS -Dserver.port=$PORT"
-else
-    echo "Invalid PORT detected, using application.properties default"
-fi
+echo "PORT environment variable will be resolved by Spring Boot: $PORT"
 
 echo "Final JAVA_OPTS: $JAVA_OPTS"
 

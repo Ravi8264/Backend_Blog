@@ -40,14 +40,20 @@ echo Starting application with PORT=%PORT% and PROFILE=%SPRING_PROFILES_ACTIVE%
 REM Start the application with explicit port override
 set JAVA_OPTS=-Dspring.profiles.active=%SPRING_PROFILES_ACTIVE%
 
-REM Add port configuration only if PORT is valid number
+REM Add port configuration only if PORT is valid number and not literal $PORT
 echo Validating PORT: %PORT%
-echo %PORT%| findstr /R "^[0-9]*$" >nul
-if %errorlevel%==0 (
-    echo Using validated PORT: %PORT%
-    set JAVA_OPTS=%JAVA_OPTS% -Dserver.port=%PORT%
+if "%PORT%"=="$PORT" (
+    echo ERROR: PORT contains literal $PORT string, removing system property
+    echo Will use application.properties default via environment variable resolution
 ) else (
-    echo Invalid PORT detected, using application.properties default
+    echo %PORT%| findstr /R "^[0-9]*$" >nul
+    if %errorlevel%==0 (
+        echo Using validated PORT: %PORT%
+        REM Do NOT set -Dserver.port as system property - let Spring resolve ${PORT:8080}
+        echo Letting Spring Boot resolve PORT from environment variable
+    ) else (
+        echo Invalid PORT detected, using application.properties default
+    )
 )
 
 echo Final JAVA_OPTS: %JAVA_OPTS%
