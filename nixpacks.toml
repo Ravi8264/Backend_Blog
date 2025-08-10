@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["jdk17", "maven"]
+nixPkgs = ["jdk21", "maven"]
 cmds = ["chmod +x ./mvnw"]
 
 [phases.build]
@@ -7,13 +7,14 @@ cmds = [
   "rm -rf target/",
   "./mvnw dependency:go-offline -B",
   "./mvnw clean package -DskipTests -Dmaven.javadoc.skip=true",
+  "mkdir -p uploads/images",
   "ls -la target/",
   "find target -name '*.jar' -type f"
 ]
 
 [phases.start]
-cmd = "java -Dserver.port=$PORT -jar $(find target -name '*.jar' -not -name '*sources*' -not -name '*javadoc*' | head -1)"
+cmd = "java -Dspring.profiles.active=prod -Xmx512m -jar target/blog-0.0.1-SNAPSHOT.jar"
 
 [variables]
-MAVEN_OPTS = "-Xmx1024m -XX:MaxMetaspaceSize=256m"
-JAVA_TOOL_OPTIONS = "-Xmx1g"
+MAVEN_OPTS = "-Xmx512m -XX:MaxMetaspaceSize=128m"
+SPRING_PROFILES_ACTIVE = "prod"

@@ -27,4 +27,4 @@ RUN mkdir -p uploads/images
 EXPOSE $PORT
 
 # Run the application with production profile
-CMD ["sh", "-c", "java -Dspring.profiles.active=prod -Dserver.port=$PORT -jar target/blog-0.0.1-SNAPSHOT.jar"]
+CMD ["sh", "-c", "java -Dspring.profiles.active=prod -jar target/blog-0.0.1-SNAPSHOT.jar"]
