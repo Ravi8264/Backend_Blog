@@ -1,4 +1,4 @@
 docker-compose.yml
 .dockerignore
-nixpacks.toml
+Dockerfile
 railway.json
