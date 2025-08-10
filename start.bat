@@ -5,6 +5,9 @@ REM Set default values if environment variables are not set
 if "%PORT%"=="" (
     set PORT=8080
     echo PORT not set, using default: 8080
+) else if "%PORT%"=="$PORT" (
+    echo ERROR: PORT contains literal $PORT string, fixing to default
+    set PORT=8080
 ) else (
     echo Using PORT from environment: %PORT%
 )
@@ -35,9 +38,9 @@ if not exist "%JAR_FILE%" (
 echo Starting application with PORT=%PORT% and PROFILE=%SPRING_PROFILES_ACTIVE%
 
 REM Start the application with explicit port override
-REM Using --server.port for higher precedence over system properties
+REM Using -Dserver.port system property
 java -Dspring.profiles.active=%SPRING_PROFILES_ACTIVE% ^
-     --server.port=%PORT% ^
+     -Dserver.port=%PORT% ^
      -Xmx512m ^
      -XX:MaxMetaspaceSize=128m ^
      -XX:+UseG1GC ^

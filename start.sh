@@ -51,9 +51,9 @@ echo "Starting application with PORT=$PORT and PROFILE=$SPRING_PROFILES_ACTIVE"
 unset SERVER_PORT 2>/dev/null || true
 
 # Start the application with explicit port override
-# Using --server.port instead of -Dserver.port for higher precedence
+# Using -Dserver.port system property
 exec java -Dspring.profiles.active=$SPRING_PROFILES_ACTIVE \
-     --server.port=$PORT \
+     -Dserver.port=$PORT \
      -Xmx512m \
      -XX:MaxMetaspaceSize=128m \
      -XX:+UseG1GC \
