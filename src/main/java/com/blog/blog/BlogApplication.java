@@ -15,6 +15,26 @@ public class BlogApplication implements CommandLineRunner {
 	private RoleRepo roleRepo;
 
 	public static void main(String[] args) {
+		// Fix PORT environment variable issue before starting Spring Boot
+		String portValue = System.getenv("PORT");
+		if (portValue != null && ("$PORT".equals(portValue) || portValue.contains("$PORT"))) {
+			System.out.println("WARNING: PORT environment variable contains literal '$PORT'. Setting default port 8080.");
+			System.setProperty("server.port", "8080");
+		} else if (portValue != null) {
+			// Validate that PORT is a valid integer
+			try {
+				Integer.parseInt(portValue);
+				System.setProperty("server.port", portValue);
+				System.out.println("INFO: Using PORT from environment: " + portValue);
+			} catch (NumberFormatException e) {
+				System.out.println("WARNING: Invalid PORT value '" + portValue + "'. Setting default port 8080.");
+				System.setProperty("server.port", "8080");
+			}
+		} else {
+			// No PORT set, will use application.properties default
+			System.out.println("INFO: No PORT environment variable set, using application.properties default");
+		}
+		
 		SpringApplication.run(BlogApplication.class, args);
 	}
 
