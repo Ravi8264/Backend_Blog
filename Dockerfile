@@ -23,8 +23,12 @@ RUN ./mvnw clean package -DskipTests -Dmaven.javadoc.skip=true
 # Create uploads directory
 RUN mkdir -p uploads/images
 
-# Expose port (Railway will set the PORT environment variable)
-EXPOSE $PORT
+# Expose default port (will be overridden by deployment platform)
+EXPOSE 8080
 
-# Run the application with production profile
-CMD ["sh", "-c", "java -Dspring.profiles.active=prod -jar target/blog-0.0.1-SNAPSHOT.jar"]
+# Copy startup script
+COPY start.sh ./
+RUN chmod +x start.sh
+
+# Run the application using startup script
+CMD ["./start.sh"]

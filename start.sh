@@ -18,8 +18,11 @@ else
     echo "Using SPRING_PROFILES_ACTIVE from environment: $SPRING_PROFILES_ACTIVE"
 fi
 
-# Validate PORT is a number
-if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
+# Validate PORT is a number and handle edge cases
+if [[ "$PORT" == "\$PORT" ]] || [[ "$PORT" == '$PORT' ]]; then
+    echo "ERROR: PORT contains literal \$PORT string, fixing to default"
+    export PORT=8080
+elif ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
     echo "ERROR: PORT must be a number, got: $PORT"
     echo "Setting PORT to default: 8080"
     export PORT=8080
@@ -44,9 +47,13 @@ fi
 
 echo "Starting application with PORT=$PORT and PROFILE=$SPRING_PROFILES_ACTIVE"
 
+# Clear any existing system properties that might interfere
+unset SERVER_PORT 2>/dev/null || true
+
 # Start the application with explicit port override
+# Using --server.port instead of -Dserver.port for higher precedence
 exec java -Dspring.profiles.active=$SPRING_PROFILES_ACTIVE \
-     -Dserver.port=$PORT \
+     --server.port=$PORT \
      -Xmx512m \
      -XX:MaxMetaspaceSize=128m \
      -XX:+UseG1GC \

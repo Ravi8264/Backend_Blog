@@ -35,8 +35,9 @@ if not exist "%JAR_FILE%" (
 echo Starting application with PORT=%PORT% and PROFILE=%SPRING_PROFILES_ACTIVE%
 
 REM Start the application with explicit port override
+REM Using --server.port for higher precedence over system properties
 java -Dspring.profiles.active=%SPRING_PROFILES_ACTIVE% ^
-     -Dserver.port=%PORT% ^
+     --server.port=%PORT% ^
      -Xmx512m ^
      -XX:MaxMetaspaceSize=128m ^
      -XX:+UseG1GC ^
