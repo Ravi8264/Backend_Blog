@@ -14,7 +14,7 @@ cmds = [
 ]
 
 [phases.start]
-cmd = "java -Dspring.profiles.active=prod -Xmx512m -jar target/blog-0.0.1-SNAPSHOT.jar"
+cmd = "chmod +x start.sh && ./start.sh"
 
 [variables]
 MAVEN_OPTS = "-Xmx512m -XX:MaxMetaspaceSize=128m"
