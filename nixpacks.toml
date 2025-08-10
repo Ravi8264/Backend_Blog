@@ -2,11 +2,14 @@
 cmds = ["chmod +x ./mvnw"]
 
 [phases.build]
-cmds = ["./mvnw clean package -DskipTests -Dmaven.javadoc.skip=true"]
+cmds = [
+  "./mvnw dependency:go-offline -B",
+  "./mvnw clean package -DskipTests -Dmaven.javadoc.skip=true"
+]
 
 [phases.start]
 cmd = "java -Dserver.port=$PORT -jar target/blog-0.0.1-SNAPSHOT.jar"
 
 [variables]
-MAVEN_OPTS = "-Xmx1024m"
+MAVEN_OPTS = "-Xmx1024m -XX:MaxMetaspaceSize=256m"
 JAVA_TOOL_OPTIONS = "-Xmx1g"
