@@ -1,0 +1,2 @@
+# This Dockerfile is disabled - use Nixpacks instead
+# Railway should detect nixpacks.toml and use Nixpacks builder

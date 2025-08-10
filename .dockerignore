@@ -1,0 +1,7 @@
+*
+!target/
+!src/
+!pom.xml
+!.mvn/
+!mvnw
+!mvnw.cmd

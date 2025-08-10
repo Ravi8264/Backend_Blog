@@ -1,4 +1,7 @@
 docker-compose.yml
-.dockerignore
 Dockerfile
+Dockerfile.*
+docker-compose.*
 railway.json
+.env
+.env.*
