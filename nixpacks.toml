@@ -1,8 +1,10 @@
 [phases.setup]
+nixPkgs = ["jdk17", "maven"]
 cmds = ["chmod +x ./mvnw"]
 
 [phases.build]
 cmds = [
+  "rm -rf target/",
   "./mvnw dependency:go-offline -B",
   "./mvnw clean package -DskipTests -Dmaven.javadoc.skip=true",
   "ls -la target/",
