@@ -50,10 +50,31 @@ echo "Starting application with PORT=$PORT and PROFILE=$SPRING_PROFILES_ACTIVE"
 # Clear any existing system properties that might interfere
 unset SERVER_PORT 2>/dev/null || true
 
+# Clear any Java system properties that might contain $PORT
+unset _JAVA_OPTIONS 2>/dev/null || true
+unset JAVA_TOOL_OPTIONS 2>/dev/null || true
+
+# Remove any existing server.port system property from environment
+if [[ "${!server.port@}" ]]; then
+    unset server.port 2>/dev/null || true
+fi
+
 # Start the application with explicit port override
-# Using -Dserver.port system property
-exec java -Dspring.profiles.active=$SPRING_PROFILES_ACTIVE \
-     -Dserver.port=$PORT \
+# Clear any problematic system properties first
+export JAVA_OPTS="-Dspring.profiles.active=$SPRING_PROFILES_ACTIVE"
+
+# Add port configuration only if PORT is valid
+if [[ "$PORT" =~ ^[0-9]+$ ]]; then
+    echo "Using validated PORT: $PORT"
+    export JAVA_OPTS="$JAVA_OPTS -Dserver.port=$PORT"
+else
+    echo "Invalid PORT detected, using application.properties default"
+fi
+
+echo "Final JAVA_OPTS: $JAVA_OPTS"
+
+# Start the application
+exec java $JAVA_OPTS \
      -Xmx512m \
      -XX:MaxMetaspaceSize=128m \
      -XX:+UseG1GC \

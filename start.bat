@@ -38,9 +38,22 @@ if not exist "%JAR_FILE%" (
 echo Starting application with PORT=%PORT% and PROFILE=%SPRING_PROFILES_ACTIVE%
 
 REM Start the application with explicit port override
-REM Using -Dserver.port system property
-java -Dspring.profiles.active=%SPRING_PROFILES_ACTIVE% ^
-     -Dserver.port=%PORT% ^
+set JAVA_OPTS=-Dspring.profiles.active=%SPRING_PROFILES_ACTIVE%
+
+REM Add port configuration only if PORT is valid number
+echo Validating PORT: %PORT%
+echo %PORT%| findstr /R "^[0-9]*$" >nul
+if %errorlevel%==0 (
+    echo Using validated PORT: %PORT%
+    set JAVA_OPTS=%JAVA_OPTS% -Dserver.port=%PORT%
+) else (
+    echo Invalid PORT detected, using application.properties default
+)
+
+echo Final JAVA_OPTS: %JAVA_OPTS%
+
+REM Start the application
+java %JAVA_OPTS% ^
      -Xmx512m ^
      -XX:MaxMetaspaceSize=128m ^
      -XX:+UseG1GC ^
