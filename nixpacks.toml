@@ -9,7 +9,8 @@ cmds = [
   "./mvnw clean package -DskipTests -Dmaven.javadoc.skip=true",
   "mkdir -p uploads/images",
   "ls -la target/",
-  "find target -name '*.jar' -type f"
+  "find target -name '*.jar' -type f",
+  "echo 'Build completed successfully'"
 ]
 
 [phases.start]
