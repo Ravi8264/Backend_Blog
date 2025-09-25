@@ -7,8 +7,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -21,7 +21,8 @@ public class CategoryController {
 
     // Create new category
     @PostMapping("/")
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')") // Commented out to allow public category
+    // creation
     public ResponseEntity<CategoryDto> create(@Valid @RequestBody CategoryDto categoryDto) {
         CategoryDto createdCategory = categoryService.create(categoryDto);
         return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
@@ -29,7 +30,7 @@ public class CategoryController {
 
     // Update category by id
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDto> update(@Valid @RequestBody CategoryDto categoryDto, @PathVariable Long id) {
         CategoryDto updatedCategory = categoryService.update(categoryDto, id);
         return ResponseEntity.ok(updatedCategory);
@@ -37,7 +38,7 @@ public class CategoryController {
 
     // Delete category by id
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponce> delete(@PathVariable Long id) {
         categoryService.delete(id);
         return ResponseEntity.ok(new ApiResponce("Category deleted successfully", true));

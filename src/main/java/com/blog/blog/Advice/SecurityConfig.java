@@ -1,13 +1,9 @@
 package com.blog.blog.Advice;
 
 import com.blog.blog.jwtAuthentication.JwtAuthenticationFilter;
-import com.blog.blog.securityBlog.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -27,75 +23,46 @@ import java.util.Arrays;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
-
-    // 🔓 Public URLs (permitAll)
     private static final String[] PUBLIC_URLS = {
-            "/api/v1/auth/**",
-            "/auth/**",
-            "/public/**",
-
-            // Swagger
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/swagger-resources/**",
-            "/webjars/**",
-
-            // Public GET endpoints
-            "/api/categories/**",
-            "/api/posts/**",
-            "/api/category/*/posts", // Fixed: single * instead of **
-            "/api/user/*/posts", // Fixed: single * instead of **
-            "/api/user/*/category/*/posts", // Fixed: single * instead of **
-            "/api/users/**",
-            "/api/user/**", // For GET only - this is fine as ** is at the end
-            "/api/comments/post/*/comments" // Allow GET requests for comments
+            "/", "/health", "/api/health", "/actuator/health", "/api/v1/auth/**", "/auth/**", "/public/**",
+            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**",
+            "/api/categories/**", "/api/posts/**", "/api/category/*/posts", "/api/user/*/posts",
+            "/api/user/*/category/*/posts", "/api/users/**", "/api/user/**", "/api/comments/post/*/comments"
     };
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+        return http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Pre-flight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(PUBLIC_URLS).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/categories/**").permitAll() // Moved from PUBLIC_URLS
-                        .requestMatchers(HttpMethod.POST, "/api/comments/post/*/comments").permitAll() // Fixed pattern
-                        .requestMatchers(HttpMethod.DELETE, "/api/comments/*").authenticated() // Allow authenticated
-                                                                                               // DELETE for comments
+                        .requestMatchers(HttpMethod.POST, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/comments/post/*/comments").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/user/**").authenticated()
                         .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "https://*.elasticbeanstalk.com",
+                "http://*.elasticbeanstalk.com", "*"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
     }
 }

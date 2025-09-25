@@ -45,7 +45,13 @@ public class PostServiceImpl implements PostService {
                 Category category = categoryRepo.findById(categoryId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
 
-                post.setImageName("default.img");
+                // Set image name from postDto, or default if not provided
+                if (postDto.getImageName() == null || postDto.getImageName().trim().isEmpty()) {
+                        post.setImageName("default.img");
+                } else {
+                        post.setImageName(postDto.getImageName());
+                }
+
                 post.setCreatedDate(new Date());
                 post.setUser(user);
                 post.setCategory(category);

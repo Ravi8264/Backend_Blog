@@ -19,4 +19,10 @@ public interface UserService {
 
    UserDto registerUser(UserDto user);
 
+   // ADMIN ONLY: Method to create admin users
+   UserDto createAdminUser(UserDto userDto);
+
+   // Check if user owns the account
+   boolean isUserOwner(Long userId, String userEmail);
+
 }

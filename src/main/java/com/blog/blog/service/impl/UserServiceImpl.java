@@ -83,17 +83,52 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto registerUser(UserDto userDto) {
-        // 1. Convert DTO to entity
-        User user = modelMapper.map(userDto, User.class);
+        // 1. Create new user manually (SECURITY FIX: Don't use modelMapper to prevent
+        // role injection)
+        User user = new User();
+        user.setName(userDto.getName());
+        user.setEmail(userDto.getEmail());
+        user.setAbout(userDto.getAbout());
 
         // 2. Encode password
-        user.setPassword(this.passwordEncoder.encode(user.getPassword()));
+        user.setPassword(this.passwordEncoder.encode(userDto.getPassword()));
 
-        // 3. Assign default role (ROLE_USER with ID = 501)
+        // 3. SECURITY: Always assign only ROLE_USER (ID = 501) - ignore any roles from
+        // request
         Role defaultRole = roleRepo.findById(501L)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", 501L));
 
-        user.getRoles().add(defaultRole);
+        user.getRoles().clear(); // Clear any existing roles
+        user.getRoles().add(defaultRole); // Add only USER role
+
+        // 4. Save user
+        User savedUser = this.userRepo.save(user);
+
+        // 5. Return DTO
+        return this.userToDto(savedUser);
+    }
+
+    // ADMIN ONLY: Method to create admin users (should be called only by existing
+    // admins)
+    public UserDto createAdminUser(UserDto userDto) {
+        // 1. Create new user manually
+        User user = new User();
+        user.setName(userDto.getName());
+        user.setEmail(userDto.getEmail());
+        user.setAbout(userDto.getAbout());
+
+        // 2. Encode password
+        user.setPassword(this.passwordEncoder.encode(userDto.getPassword()));
+
+        // 3. Assign both USER and ADMIN roles
+        Role userRole = roleRepo.findById(501L)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", 501L));
+        Role adminRole = roleRepo.findById(502L)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", 502L));
+
+        user.getRoles().clear();
+        user.getRoles().add(userRole);
+        user.getRoles().add(adminRole);
 
         // 4. Save user
         User savedUser = this.userRepo.save(user);
@@ -122,5 +157,20 @@ public class UserServiceImpl implements UserService {
         // userDto.setAbout(user.getAbout());
         // return userDto;
         return this.modelMapper.map(user, UserDto.class);
+    }
+
+    @Override
+    public boolean isUserOwner(Long userId, String userEmail) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        System.out.println("DEBUG - isUserOwner check:");
+        System.out.println("User ID: " + userId);
+        System.out.println("User email from DB: " + user.getEmail());
+        System.out.println("Authenticated user email: " + userEmail);
+        boolean isOwner = user.getEmail().equals(userEmail);
+        System.out.println("Is owner: " + isOwner);
+
+        return isOwner;
     }
 }

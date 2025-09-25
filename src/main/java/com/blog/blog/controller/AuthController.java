@@ -12,13 +12,18 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.Map;
 
 @RestController
@@ -114,6 +119,14 @@ public class AuthController {
         // In JWT, logout is typically handled client-side by deleting the token.
         // Optionally, implement token blacklisting if needed.
         return ResponseEntity.ok("User logged out successfully");
+    }
+
+    // ADMIN ONLY: Create admin user endpoint
+    @PostMapping("/create-admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDto> createAdmin(@RequestBody UserDto userDto) {
+        UserDto adminUser = userService.createAdminUser(userDto);
+        return new ResponseEntity<>(adminUser, HttpStatus.CREATED);
     }
 
 }

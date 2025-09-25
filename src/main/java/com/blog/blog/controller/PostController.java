@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class PostController {
 
     // 1. Create Post
     @PostMapping("/user/{userId}/category/{categoryId}/posts")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or #userId == authentication.principal.id")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @userServiceImpl.isUserOwner(#userId, authentication.name)")
     public ResponseEntity<PostDto> createPost(
             @Valid @RequestBody PostDto postDto,
             @PathVariable Long userId,
